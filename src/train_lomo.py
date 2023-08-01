@@ -72,8 +72,8 @@ def train():
         wandb_config.update(asdict(model_args))
         wandb_config.update(asdict(data_args))
         wandb.init(
-            project="collie",
-            entity='collie_exp',
+            project="gpt-5",
+            entity="ryanteam",
             name=tag_name if hparam_name == 'output' else '_'.join([tag_name, hparam_name.replace('output_', '')]),
             config=wandb_config
         )
@@ -108,7 +108,9 @@ def train():
         model=model,
         training_args=training_args,
         data_collator={'train': DataCollatorForCauselLM(tokenizer, max_length=data_args.data_max_length, padding_side='left'),
-                       'eval': EvalDataCollatorForCauselLM(tokenizer, max_length=data_args.data_max_length, padding_side='left')},
+                       'eval': DataCollatorForCauselLM(tokenizer, max_length=data_args.data_max_length, padding_side='left'),
+                      # 'eval': EvalDataCollatorForCauselLM(tokenizer, max_length=data_args.data_max_length, padding_side='left')
+                      },
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         tokenizer=tokenizer,

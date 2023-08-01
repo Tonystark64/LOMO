@@ -150,14 +150,22 @@ class EvalDataCollatorForCauselLM:
             for op_input_ids, op_labels in zip(feature["input_ids"], feature["labels"]):
                 un_mask = np.zeros_like(op_labels)
                 un_mask_index = np.where(op_labels == self.label_pad_token_id, 1, 0).sum() - 2
-                un_mask[:un_mask_index] = 1
+                try:
+                    un_mask[:un_mask_index] = 1
+                except IndexError:
+                    un_mask = np.ones_like(op_labels)
                 new_features.append({"input_ids": op_input_ids, "labels": op_labels, "un_mask": un_mask})
 
         labels = [feature["labels"] for feature in new_features]
         # We have to pad the labels before calling `tokenizer.pad` as this method won't pad them and needs them of the
         # same length to return tensors.
         if labels is not None:
-            max_label_length = max(len(l) for l in labels)
+            for i in range(len(labels)):
+                try:
+                    len(labels[i])
+                except Exception:
+                    labels[i] = [labels[i]]
+            max_label_length = max( len(l) for l in labels)
             if self.pad_to_multiple_of is not None:
                 max_label_length = (
                         (max_label_length + self.pad_to_multiple_of - 1)

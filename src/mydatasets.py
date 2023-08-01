@@ -275,6 +275,24 @@ def get_dataset_info(dataset_name):
             sample_size=1000,
             extractor=process_record
         )
+    elif dataset_name == 'math250k':
+        return DatasetInfo(
+            path = "BelleGroup/school_math_0.25M",
+            exemplar_split='train',
+            eval_split='train',
+            sample_size=15000,
+            extractor=lambda row: {
+                "parts": [
+                    QuestionPart(
+                        f"{row['instruction']}" ,
+                    ),
+                ],
+                "choices": [
+                    row['output'],row['output']
+                ],
+                "answer_idx": int(row['instruction']=="")
+            }
+        )
     else:
         raise NotImplementedError
 

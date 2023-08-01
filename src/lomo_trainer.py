@@ -186,6 +186,8 @@ class LOMOTrainer:
 
                     if self.training_args.save_strategy == 'steps' and self.global_step % self.training_args.save_steps == 0:
                         self.save_model(self.global_step)
+            
+                    self.training_args.do_eval = False
 
                     if self.training_args.do_eval and self.training_args.evaluation_strategy == 'steps' and \
                             self.global_step % self.training_args.eval_steps == 0:
@@ -228,7 +230,6 @@ class LOMOTrainer:
 
         with tqdm.tqdm(dataloader, disable=not self.allow_print) as tqb:
             all_preds = None
-            self.model.eval()
             for batch in tqb:
                 with torch.no_grad():
                     if self.training_args.predict_with_generate:
@@ -260,7 +261,9 @@ class LOMOTrainer:
         """
         used for classification or multi-choice qa tasks in eval()
         """
-        outs = self.model(batch['input_ids'].cuda(), batch['attention_mask'].cuda())
+        self.model.eval()
+        outs = self.model(input_ids=batch['input_ids'].cuda(),
+                        attention_mask=batch['attention_mask'].cuda())
         # Shift so that tokens < n predict n
         shift_logits = outs.logits[..., :-1, :].contiguous()
         shift_labels = batch['labels'][..., 1:].cuda().contiguous()
